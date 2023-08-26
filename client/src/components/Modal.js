@@ -1,42 +1,71 @@
 import { useState } from "react";
-const Modal = ({ mode,setShowModal ,task }) => {
+import { useRef, useEffect } from "react";
+const Modal = ({ mode, setShowModal, task, getData }) => {
   const editMode = mode === "edit" ? true : false;
+  const inputRef = useRef(null);
   const [data, setData] = useState({
-    user_email: editMode?task.user_email:'bob@test.com',
-    title: editMode?task.title:null,
-    progress: editMode?task.progress:50,
-    date: editMode ? "" : new Date()
+    user_email: editMode ? task.user_email : "weaponillegal53@gmail.com",
+    title: editMode ? task.title : null,
+    progress: editMode ? task.progress : 50,
+    date: editMode ? task.date : new Date(),
   });
+  useEffect(() => {
+    inputRef.current.focus();
+  }, []);
   const handleChange = (e) => {
     console.log("changing", e);
     const { name, value } = e.target;
     setData((data) => ({
       ...data,
-      [name]: value
+      [name]: value,
     }));
-    console.log(data)
+    console.log(data);
   };
-const postData=async(e)=>{
-    e.preventDefault()
-    try{
-        const response=await fetch('http://localhost:8000/todos',{
-            method:"POST",
-            headers:{'content-Type':'application/json'},
-            body:JSON.stringify(data)
-        })
+  const postData = async (e) => {
+    e.preventDefault();
 
-    }catch(err){
-        console.log(err)
+    try {
+      const response = await fetch("http://localhost:8000/todos", {
+        method: "POST",
+        headers: { "content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
 
+      if (response.status === 200) {
+        console.log("worked");
+        setShowModal(false);
+        getData();
+      }
+    } catch (err) {
+      console.log(err);
     }
-}
+  };
+  const editData = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch(`http://localhost:8000/todos/${task.id}`, {
+        method: "PUT",
+        headers: { "content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (response.status === 200) {
+        console.log("worked");
+        setShowModal(false);
+        getData();
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   return (
     <div className="overlay">
       <div className="modal">
         <div className="form-title-container">
           <h3>let's {mode} you task</h3>
-          <button onClick={()=>setShowModal(false)}>X</button>
+          <button onClick={() => setShowModal(false)}>X</button>
         </div>
         <form>
           <input
@@ -46,9 +75,10 @@ const postData=async(e)=>{
             name="title"
             value={data.title}
             onChange={handleChange}
+            ref={inputRef}
           />
           <br />
-          <label for="range">Draf=g to select your current progress</label>
+          <label for="range">Drag to select your current progress</label>
           <input
             required
             type="range"
@@ -59,7 +89,11 @@ const postData=async(e)=>{
             value={data.progress}
             onChange={handleChange}
           />
-          <input className={mode} type="submit" onClick={editMode?'':postData}/>
+          <input
+            className={mode}
+            type="submit"
+            onClick={editMode ? editData : postData}
+          />
         </form>
       </div>
     </div>
