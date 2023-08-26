@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { useRef, useEffect } from "react";
+import { useCookies } from 'react-cookie'
+
 const Modal = ({ mode, setShowModal, task, getData }) => {
+  const [cookies, setCookie, removeCookie] = useCookies(null)
   const editMode = mode === "edit" ? true : false;
   const inputRef = useRef(null);
   const [data, setData] = useState({
-    user_email: editMode ? task.user_email : "weaponillegal53@gmail.com",
+    user_email: editMode ? task.user_email : cookies.Email,
     title: editMode ? task.title : null,
     progress: editMode ? task.progress : 50,
     date: editMode ? task.date : new Date(),
@@ -12,8 +15,9 @@ const Modal = ({ mode, setShowModal, task, getData }) => {
   useEffect(() => {
     inputRef.current.focus();
   }, []);
+
   const handleChange = (e) => {
-    console.log("changing", e);
+   
     const { name, value } = e.target;
     setData((data) => ({
       ...data,
@@ -21,11 +25,13 @@ const Modal = ({ mode, setShowModal, task, getData }) => {
     }));
     console.log(data);
   };
+
   const postData = async (e) => {
     e.preventDefault();
+    console.log(process.env.HELLO)
 
     try {
-      const response = await fetch("http://localhost:8000/todos", {
+      const response = await fetch(`http://localhost:8000/todos`, {
         method: "POST",
         headers: { "content-Type": "application/json" },
         body: JSON.stringify(data),
